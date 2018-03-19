@@ -1,5 +1,14 @@
 #This is an implmentation of the BBS PRNG
 #Here is a few setup functions to help us out
+import random
+def gcd(a,b):
+    '''
+    2.8 times faster than egcd(a,b)[2]
+    '''
+    a,b=(b,a) if a<b else (a,b)
+    while b:
+        a,b=b,a%b
+    return a
 
 #Cool This one works
 #is prime is modified here to also make sure
@@ -58,3 +67,32 @@ def generate_primes(n_bits):
         q = q | padder
         q = q | 1
     return (p, q)
+
+#Okay let us start generating random numbers
+#the primes are n_bits long while the output is 
+#l bits long
+def generate_random_bits(n_bits, l):
+    primes = generate_primes(n_bits)
+    n = primes[0]*primes[1]
+    #generate our seed
+    seed = random.randint(1, n-1)
+    #make the seed odd
+    seed = seed | 1
+    while gcd(n, seed) != 1:
+        seed = random.randint(1, n-1)
+    #we have our seed and our n and our p and q
+    z = 0
+    x = []
+    x.append(pow(seed, 2, n))
+    i = 1
+    #grab the LSB of x and append it to z
+    z = z | (x[0] & 1)
+    while i <= l:
+
+        #bit shift r by 1 to the left
+        z = z << 1
+        #Generate the next x
+        x.append(pow(x[i-1], 2, n))
+        z = z | (x[i] & 1)
+        i += 1
+    return z
